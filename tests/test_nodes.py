@@ -56,9 +56,9 @@ syntax_examples = [
     "f'a {round(key, 2)} {z}'",
     # slices
     "o[x]",
-    "o[x,y]",
+    "o[x, y]",
     "o[x:y]",
-    "o[x:y,z]",
+    "o[x:y, z]",
     "o[x, y(z)]",
     # walrus operator
     "a if (a := b) else c",
