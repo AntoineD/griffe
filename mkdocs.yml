@@ -124,6 +124,7 @@ plugins:
         import:
         - https://docs.python.org/3/objects.inv
         options:
+          annotations_path: brief
           docstring_options:
             ignore_init_summary: true
           docstring_section_style: list

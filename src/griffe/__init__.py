@@ -16,6 +16,12 @@ from griffe.importer import dynamic_import
 from griffe.loader import load
 from griffe.logger import get_logger
 
+
+class AAAA:
+    def hello() -> Extension.on_attribute_node:
+        """Hello."""
+
+
 __all__: list[str] = [
     "Attribute",
     "Class",

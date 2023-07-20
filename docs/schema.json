@@ -344,12 +344,12 @@
       "properties": {
         "source": {
           "title": "The annotation as written in the source code.",
-          "markdownDescription": "https://mkdocstrings.github.io/griffe/reference/griffe/dataclasses/#griffe.expressions.Name",
+          "markdownDescription": "https://mkdocstrings.github.io/griffe/reference/griffe/dataclasses/#griffe.expressions.ExprName",
           "type": "string"
         },
         "full": {
           "title": "The full path of the .",
-          "markdownDescription": "https://mkdocstrings.github.io/griffe/reference/griffe/dataclasses/#griffe.expressions.Name",
+          "markdownDescription": "https://mkdocstrings.github.io/griffe/reference/griffe/dataclasses/#griffe.expressions.ExprName",
           "type": "string"
         }
       },

@@ -1,5 +1,15 @@
 # Checking for API breakages
 
+::: griffe.dataclasses.Object
+    options:
+      heading_level: 2
+      members:
+      - attributes
+      - all_members
+      - as_json
+      - lines
+      - as_dict
+
 Griffe is able to compare two snapshots of your project
 to detect API breakages between the old and the new snapshot.
 By snapshot we mean a specific point in your Git history.
