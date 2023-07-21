@@ -117,7 +117,14 @@ def _load_decorators(obj_dict: dict) -> list[Decorator]:
 
 
 def _load_expression(expression: dict) -> expressions.Expr:
-    return getattr(expressions, expression.pop("cls"))(**expression)
+    cls = getattr(expressions, expression.pop("cls"))
+    expr = cls(**expression)
+    if cls is expressions.ExprAttribute:
+        if isinstance(expr.left, expressions.ExprName):
+            expr.right.parent = expr.left
+        elif isinstance(expr.left, expressions.ExprAttribute):
+            expr.right.parent = expr.left.right
+    return expr
 
 
 def _load_parameter(obj_dict: dict[str, Any]) -> Parameter:
@@ -215,7 +222,7 @@ def json_decoder(obj_dict: dict[str, Any]) -> dict[str, Any] | Object | Alias | 
     """
     if "cls" in obj_dict:
         return _load_expression(obj_dict)
-    elif "kind" in obj_dict:
+    if "kind" in obj_dict:
         try:
             kind = Kind(obj_dict["kind"])
         except ValueError:

@@ -45,8 +45,8 @@ def _join(elements: Iterable[str | Expr | tuple[str | Expr, ...]], joint: str | 
 
 
 def _field_as_dict(
-    element: str | bool | Expr | None | list[str | Expr],
-    **kwargs,
+    element: str | bool | Expr | list[str | Expr] | None,
+    **kwargs: Any,
 ) -> str | bool | None | list | dict:
     if isinstance(element, Expr):
         return _expr_as_dict(element, **kwargs)
@@ -55,7 +55,7 @@ def _field_as_dict(
     return element
 
 
-def _expr_as_dict(expression: Expr, **kwargs) -> dict[str, Any]:
+def _expr_as_dict(expression: Expr, **kwargs: Any) -> dict[str, Any]:
     fields = {
         field.name: _field_as_dict(getattr(expression, field.name), **kwargs)
         for field in sorted(getfields(expression), key=lambda f: f.name)
@@ -64,13 +64,14 @@ def _expr_as_dict(expression: Expr, **kwargs) -> dict[str, Any]:
     fields["cls"] = expression.__class__.__name__
     return fields
 
+
 # TODO: merge in decorators once Python 3.9 is dropped
 dataclass_opts: dict[str, bool] = {}
 if sys.version_info >= (3, 10):
     dataclass_opts["slots"] = True
 
 
-@dataclass(frozen=True)
+@dataclass
 class Expr:
     def __str__(self) -> str:
         return "".join(elem if isinstance(elem, str) else elem.name for elem in self)
@@ -110,7 +111,7 @@ class Expr:
         return isinstance(self, ExprSubscript) and self.canonical_name == "Generator"
 
 
-@dataclass(frozen=True, eq=False, **dataclass_opts)
+@dataclass(eq=False, **dataclass_opts)
 class ExprAttribute(Expr):
     left: str | Expr
     right: ExprName
@@ -129,7 +130,7 @@ class ExprAttribute(Expr):
         return self.right.canonical_path
 
 
-@dataclass(frozen=True, eq=False, **dataclass_opts)
+@dataclass(eq=False, **dataclass_opts)
 class ExprBinOp(Expr):
     left: str | Expr
     operator: str
@@ -141,7 +142,7 @@ class ExprBinOp(Expr):
         yield from _yield(self.right)
 
 
-@dataclass(frozen=True, eq=False, **dataclass_opts)
+@dataclass(eq=False, **dataclass_opts)
 class ExprBoolOp(Expr):
     operator: str
     values: Sequence[str | Expr]
@@ -150,7 +151,7 @@ class ExprBoolOp(Expr):
         yield from _join(self.values, f" {self.operator} ")
 
 
-@dataclass(frozen=True, eq=False, **dataclass_opts)
+@dataclass(eq=False, **dataclass_opts)
 class ExprCall(Expr):
     function: Expr
     arguments: Sequence[str | Expr]
@@ -162,7 +163,7 @@ class ExprCall(Expr):
         yield ")"
 
 
-@dataclass(frozen=True, eq=False, **dataclass_opts)
+@dataclass(eq=False, **dataclass_opts)
 class ExprCompare(Expr):
     left: str | Expr
     operators: Sequence[str]
@@ -174,7 +175,7 @@ class ExprCompare(Expr):
         yield from _join(zip_longest(self.operators, [], self.comparators, fillvalue=" "), " ")
 
 
-@dataclass(frozen=True, eq=False, **dataclass_opts)
+@dataclass(eq=False, **dataclass_opts)
 class ExprComprehension(Expr):
     target: str | Expr
     iterable: str | Expr
@@ -193,7 +194,7 @@ class ExprComprehension(Expr):
             yield from _join(self.conditions, " if ")
 
 
-@dataclass(frozen=True, eq=False, **dataclass_opts)
+@dataclass(eq=False, **dataclass_opts)
 class ExprConstant(Expr):
     value: str
 
@@ -201,7 +202,7 @@ class ExprConstant(Expr):
         yield self.value
 
 
-@dataclass(frozen=True, eq=False, **dataclass_opts)
+@dataclass(eq=False, **dataclass_opts)
 class ExprDict(Expr):
     keys: Sequence[str | Expr | None]
     values: Sequence[str | Expr]
@@ -215,7 +216,7 @@ class ExprDict(Expr):
         yield "}"
 
 
-@dataclass(frozen=True, eq=False, **dataclass_opts)
+@dataclass(eq=False, **dataclass_opts)
 class ExprDictComp(Expr):
     key: str | Expr
     value: str | Expr
@@ -230,7 +231,7 @@ class ExprDictComp(Expr):
         yield "}"
 
 
-@dataclass(frozen=True, eq=False, **dataclass_opts)
+@dataclass(eq=False, **dataclass_opts)
 class ExprExtSlice(Expr):
     dims: Sequence[str | Expr]
 
@@ -238,7 +239,7 @@ class ExprExtSlice(Expr):
         yield from _join(self.dims, ", ")
 
 
-@dataclass(frozen=True, eq=False, **dataclass_opts)
+@dataclass(eq=False, **dataclass_opts)
 class ExprFormatted(Expr):
     value: str | Expr
 
@@ -248,7 +249,7 @@ class ExprFormatted(Expr):
         yield "}"
 
 
-@dataclass(frozen=True, eq=False, **dataclass_opts)
+@dataclass(eq=False, **dataclass_opts)
 class ExprGeneratorExp(Expr):
     element: str | Expr
     generators: Sequence[Expr]
@@ -259,7 +260,7 @@ class ExprGeneratorExp(Expr):
         yield from _join(self.generators, " ")
 
 
-@dataclass(frozen=True, eq=False, **dataclass_opts)
+@dataclass(eq=False, **dataclass_opts)
 class ExprIfExp(Expr):
     body: str | Expr
     test: str | Expr
@@ -273,7 +274,7 @@ class ExprIfExp(Expr):
         yield from _yield(self.orelse)
 
 
-@dataclass(frozen=True, eq=False, **dataclass_opts)
+@dataclass(eq=False, **dataclass_opts)
 class ExprJoinedStr(Expr):
     values: Sequence[str | Expr]
 
@@ -283,7 +284,7 @@ class ExprJoinedStr(Expr):
         yield "'"
 
 
-@dataclass(frozen=True, eq=False, **dataclass_opts)
+@dataclass(eq=False, **dataclass_opts)
 class ExprKeyword(Expr):
     name: str
     value: str | Expr
@@ -294,7 +295,7 @@ class ExprKeyword(Expr):
         yield from _yield(self.value)
 
 
-@dataclass(frozen=True, eq=False, **dataclass_opts)
+@dataclass(eq=False, **dataclass_opts)
 class ExprVarPositional(Expr):
     value: Expr
 
@@ -303,7 +304,7 @@ class ExprVarPositional(Expr):
         yield from self.value
 
 
-@dataclass(frozen=True, eq=False, **dataclass_opts)
+@dataclass(eq=False, **dataclass_opts)
 class ExprVarKeyword(Expr):
     value: Expr
 
@@ -312,7 +313,7 @@ class ExprVarKeyword(Expr):
         yield from self.value
 
 
-@dataclass(frozen=True, eq=False, **dataclass_opts)
+@dataclass(eq=False, **dataclass_opts)
 class ExprLambda(Expr):
     parameters: Sequence[ExprParameter]
     body: str | Expr
@@ -324,7 +325,7 @@ class ExprLambda(Expr):
         yield from _yield(self.body)
 
 
-@dataclass(frozen=True, eq=False, **dataclass_opts)
+@dataclass(eq=False, **dataclass_opts)
 class ExprList(Expr):
     elements: Sequence[Expr]
 
@@ -334,7 +335,7 @@ class ExprList(Expr):
         yield "]"
 
 
-@dataclass(frozen=True, eq=False, **dataclass_opts)
+@dataclass(eq=False, **dataclass_opts)
 class ExprListComp(Expr):
     element: str | Expr
     generators: Sequence[Expr]
@@ -347,7 +348,7 @@ class ExprListComp(Expr):
         yield "]"
 
 
-@dataclass(frozen=True, eq=True, **dataclass_opts)
+@dataclass(eq=True, **dataclass_opts)
 class ExprName(Expr):
     """This class represents a Python object identified by a name in a given scope.
 
@@ -372,9 +373,9 @@ class ExprName(Expr):
         Returns:
             The resolved name or the source.
         """
-        if self.parent is None or not isinstance(self.parent, ExprName):
-            return self.name
-        return f"{self.parent.path}.{self.name}"
+        if isinstance(self.parent, ExprName):
+            return f"{self.parent.path}.{self.name}"
+        return self.name
 
     @property
     def canonical_path(self) -> str:
@@ -401,7 +402,7 @@ class ExprName(Expr):
         return self.name
 
 
-@dataclass(frozen=True, eq=False, **dataclass_opts)
+@dataclass(eq=False, **dataclass_opts)
 class ExprNamedExpr(Expr):
     target: Expr
     value: str | Expr
@@ -414,7 +415,7 @@ class ExprNamedExpr(Expr):
         yield ")"
 
 
-@dataclass(frozen=True, eq=False, **dataclass_opts)
+@dataclass(eq=False, **dataclass_opts)
 class ExprParameter(Expr):
     kind: str
     name: str | None = None
@@ -422,7 +423,7 @@ class ExprParameter(Expr):
     default: Expr | None = None
 
 
-@dataclass(frozen=True, eq=False, **dataclass_opts)
+@dataclass(eq=False, **dataclass_opts)
 class ExprSet(Expr):
     elements: Sequence[str | Expr]
 
@@ -432,7 +433,7 @@ class ExprSet(Expr):
         yield "}"
 
 
-@dataclass(frozen=True, eq=False, **dataclass_opts)
+@dataclass(eq=False, **dataclass_opts)
 class ExprSetComp(Expr):
     element: str | Expr
     generators: Sequence[Expr]
@@ -445,7 +446,7 @@ class ExprSetComp(Expr):
         yield "}"
 
 
-@dataclass(frozen=True, eq=False, **dataclass_opts)
+@dataclass(eq=False, **dataclass_opts)
 class ExprSlice(Expr):
     lower: str | Expr | None = None
     upper: str | Expr | None = None
@@ -462,7 +463,7 @@ class ExprSlice(Expr):
             yield from _yield(self.step)
 
 
-@dataclass(frozen=True, eq=False, **dataclass_opts)
+@dataclass(eq=False, **dataclass_opts)
 class ExprSubscript(Expr):
     left: Expr
     slice: Expr  # noqa: A003
@@ -482,7 +483,7 @@ class ExprSubscript(Expr):
         return self.left.canonical_path
 
 
-@dataclass(frozen=True, eq=False, **dataclass_opts)
+@dataclass(eq=False, **dataclass_opts)
 class ExprTuple(Expr):
     elements: Sequence[str | Expr]
     implicit: bool = False
@@ -495,7 +496,7 @@ class ExprTuple(Expr):
             yield ")"
 
 
-@dataclass(frozen=True, eq=False, **dataclass_opts)
+@dataclass(eq=False, **dataclass_opts)
 class ExprUnaryOp(Expr):
     operator: str
     value: str | Expr
@@ -505,7 +506,7 @@ class ExprUnaryOp(Expr):
         yield from _yield(self.value)
 
 
-@dataclass(frozen=True, eq=False, **dataclass_opts)
+@dataclass(eq=False, **dataclass_opts)
 class ExprYield(Expr):
     value: str | Expr | None = None
 
